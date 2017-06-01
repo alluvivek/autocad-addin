@@ -12,7 +12,7 @@ namespace ProsoftAcPlugin
         [CommandMethod("ConcentricCircles")]
         public static void ConcentricCircles()
         {
-            //show the form
+            //create and show the form 
             var form = new PluginForm();
             form.Show();
         }

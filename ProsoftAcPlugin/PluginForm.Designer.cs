@@ -102,7 +102,6 @@
             this.txtBlockName.Name = "txtBlockName";
             this.txtBlockName.Size = new System.Drawing.Size(112, 20);
             this.txtBlockName.TabIndex = 1;
-            this.txtBlockName.TextChanged += new System.EventHandler(this.txtBlockName_TextChanged);
             // 
             // btnSubmitCircle
             // 

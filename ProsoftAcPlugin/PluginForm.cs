@@ -10,23 +10,21 @@ namespace ProsoftAcPlugin
     public partial class PluginForm : Form
     {
         private int _circleColorCount = 0;
-        private System.Drawing.Color[] _colors = new System.Drawing.Color[3];
+        private System.Drawing.Color[] _colors = new System.Drawing.Color[3]; //to store all the circle colors
         private const int _circleCount = 3;
-        private const string _defaultBloackName = "Concentric Circles";
+        private const string _defaultBlockName = "Concentric Circles"; //default block name if not set 
         private readonly Point3d _basePointCenter = new Point3d(5, 5, 0);
-        private readonly double _baseRadius = 3;
+        private readonly double _baseRadius = 3; //base circle radius
 
         public PluginForm()
         {
             InitializeComponent();
         }
 
-
-
         private void PluginForm_Load(object sender, EventArgs e)
         {
-            txtBlockName.Text = _defaultBloackName;
-            btnSubmitCircle.Enabled = false;
+            txtBlockName.Text = _defaultBlockName; //set the default block name
+            btnSubmitCircle.Enabled = false; //set default status to the submit button
         }
 
 
@@ -46,6 +44,92 @@ namespace ProsoftAcPlugin
         }
 
         private void btnSubmitCircle_Click(object sender, EventArgs e)
+        {
+            processPluginForm();
+        }
+        
+
+        /// <summary>
+        /// Set a label color and color for circles
+        /// </summary>
+        /// <param name="color"></param>
+        private void setLabelCircleColor(int indexCircle)
+        {
+            DialogResult result = circleColorDialog.ShowDialog(this);
+            if (result == DialogResult.OK)
+            {
+                var color = circleColorDialog.Color;
+                _circleColorCount++;
+                switch (indexCircle)
+                {
+                    case 0:
+                        lblCircle1Color.BackColor = color;
+                        _colors[indexCircle] = color;
+                        break;
+                    case 1:
+                        lblCircle2Color.BackColor = color;
+                        _colors[indexCircle] = color;
+                        break;
+                    case 2:
+                        lblCircle3Color.BackColor = color;
+                        _colors[indexCircle] = color;
+                        break;
+                    default:
+
+                        break;
+                }
+
+                if (_circleColorCount >= _circleCount)
+                {
+                    btnSubmitCircle.Enabled = true;
+                }
+            }
+            else
+            {
+                if (_circleColorCount < _circleCount)
+                {
+                    btnSubmitCircle.Enabled = false;
+                }
+            }
+
+
+        }
+
+        /// <summary>
+        /// Get a circle with the center, radius and color sent
+        /// </summary>
+        /// <param name="center"></param>
+        /// <param name="radius"></param>
+        /// <param name="index"></param>
+        /// <returns>Autodesk.AutoCAD.DatabaseServices.Circle</returns>
+        private Circle makeCircle(Point3d center, double radius, System.Drawing.Color color)
+        {
+            Circle circle = new Circle();
+            circle.SetDatabaseDefaults();
+            circle.Center = center;
+            circle.Radius = radius;
+            circle.Color = Color.FromColor(color);
+            return circle;
+        }
+
+        /// <summary>
+        /// Get the block name if is set in the text field
+        /// </summary>
+        /// <returns>string</returns>
+        private string getBLockname()
+        {
+            if (!string.IsNullOrEmpty(txtBlockName.Text))
+            {
+                return txtBlockName.Text.Trim();
+            }
+
+            return _defaultBlockName;
+        }
+
+        /// <summary>
+        /// Process the inputs in the form, draw the 3 circles and add the block
+        /// </summary>
+        private void processPluginForm()
         {
             // get the manager and current document
             var documentManager = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager;
@@ -124,156 +208,5 @@ namespace ProsoftAcPlugin
             // Set the new document current
             documentManager.MdiActiveDocument = currentDocument;
         }
-
-        private void txtBlockName_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        /// <summary>
-        /// Set a label color and color for circles
-        /// </summary>
-        /// <param name="color"></param>
-        private void setLabelCircleColor(int indexCircle)
-        {
-            DialogResult result = circleColorDialog.ShowDialog(this);
-            if (result == DialogResult.OK)
-            {
-                var color = circleColorDialog.Color;
-                _circleColorCount++;
-                switch (indexCircle)
-                {
-                    case 0:
-                        lblCircle1Color.BackColor = color;
-                        _colors[indexCircle] = color;
-                        break;
-                    case 1:
-                        lblCircle2Color.BackColor = color;
-                        _colors[indexCircle] = color;
-                        break;
-                    case 2:
-                        lblCircle3Color.BackColor = color;
-                        _colors[indexCircle] = color;
-                        break;
-                    default:
-
-                        break;
-                }
-
-                if (_circleColorCount >= _circleCount)
-                {
-                    btnSubmitCircle.Enabled = true;
-                }
-            }
-            else
-            {
-                if (_circleColorCount < _circleCount)
-                {
-                    btnSubmitCircle.Enabled = false;
-                }
-            }
-
-
-        }
-
-        /// <summary>
-        /// Get a circle with the center and radius sent
-        /// </summary>
-        /// <param name="center"></param>
-        /// <param name="radius"></param>
-        /// <param name="index"></param>
-        /// <returns>Autodesk.AutoCAD.DatabaseServices.Circle</returns>
-        private Circle makeCircle(Point3d center, double radius, System.Drawing.Color color)
-        {
-            Circle circle = new Circle();
-            circle.SetDatabaseDefaults();
-            circle.Center = center;
-            circle.Radius = radius;
-            circle.Color = Color.FromColor(color);
-            return circle;
-        }
-
-        /// <summary>
-        /// Get the block name if is set in the text field
-        /// </summary>
-        /// <returns>string</returns>
-        private string getBLockname()
-        {
-            if (!string.IsNullOrEmpty(txtBlockName.Text))
-            {
-                return txtBlockName.Text.Trim();
-            }
-
-            return _defaultBloackName;
-        }
     }
 }
-
-            /*          
-            // Lock the current document
-            using (DocumentLock docLock = currentDocument.LockDocument())
-            {
-                // Start a new transaction
-                using (var transaction = database.TransactionManager.StartTransaction())
-                {
-                    // get a table
-                    var table = transaction.GetObject(database.BlockTableId,
-                                                 OpenMode.ForRead) as BlockTable;
-
-
-                    //create a block if not exists
-                    var blockname = getBLockname();
-                    if (!table.Has(blockname))
-                    {
-                       
-                        using (BlockTableRecord record = new BlockTableRecord())
-                        {
-                            record.Name = blockname;
-                            record.Origin = new Point3d(5, 5, 0);
-
-
-                           
-                            // Create circles
-                            for (var i = 0; i < _circleCount; i++)
-                            {
-                                var radius = _baseRadius * (i + 1);
-                                var circle = makeCircle(_basePointCenter, radius, _colors[i]);
-
-                                // Add circle to the record 
-                                record.AppendEntity(circle);
-                            }
-
-                            table.UpgradeOpen();
-                            table.Add(record);
-                            transaction.AddNewlyCreatedDBObject(record, true);
-                            
-                            foreach(ObjectId asObjId in record)
-                            {
-                                // Create the hatch object and append it to the block table record
-                                using (Hatch circleHatch = new Hatch())
-                                {
-                                    var circleCollection = new ObjectIdCollection();
-                                    circleCollection.Add(asObjId);
-                                    circleHatch.SetDatabaseDefaults();
-
-
-                                    circleHatch.SetHatchPattern(HatchPatternType.PreDefined, "ANSI31");
-                                    record.AppendEntity(circleHatch);
-                                    transaction.AddNewlyCreatedDBObject(circleHatch, true);
-
-                                    // Set the properties of the hatch object
-                                    // Associative must be set after the hatch object is appended to the 
-                                    // block table record and before AppendLoop
-                                    circleHatch.Associative = false;
-                                    circleHatch.AppendLoop(HatchLoopTypes.DEFA, circleCollection);
-                                    circleHatch.EvaluateHatch(true);
-                                }
-                            }
-                            // Insert the created block
-                            using (BlockReference blockRef = new BlockReference(new Point3d(5, 5, 0), record.Id))
-                            {
-                                var existingRecord = transaction.GetObject(database.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
-                                existingRecord.AppendEntity(blockRef);
-                                transaction.AddNewlyCreatedDBObject(blockRef, true);
-                                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog("Concentric Circles has been created.");
-                     */      
